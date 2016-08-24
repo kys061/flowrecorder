@@ -15,7 +15,7 @@ D_INTERFACE_LIST = {
         'external':'stm9',          # Interface name
         'internal':'stm10'          # Interface name
 }
-TOP_NUM = '70'
+TOP_NUM = '5'
 ARRIVAL_RATE = '10'
 USERNAME = 'admin'
 PASSWORD = 'admin'
@@ -68,6 +68,8 @@ def main():
                                   currenttime)
                 fr.printall()
                 fr.start_fr_txt()
+                fr.start_fr_csv()
+                fr.start_fr_by_host()
                 #fr.start_fr_by_host()
                 #do_txt_log(file_paths[1], file_paths[0], foldername, curTime)  # cmd, path, foldername, date
                 #logger(0, SCRIPT_MON_LOG_FILE, 'Flow info from interfaces {} is extracted to {} successfully!'.format(INTERFACE_LIST[i], file_paths[0]))
