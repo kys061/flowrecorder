@@ -13,10 +13,10 @@ import logging
 import pandas as pd
 
 # Env for (eg. echo 'show int stm3 flows top 100 by average_rate' | ./stm_cli.py admin:admin@localhost)
-INTERFACE_LIST = [
-    'stm9',		# Interface name
-    'stm10'		# Interface name
-]
+D_INTERFACE_LIST = {
+    'external':'stm9',		# Interface name
+    'internal':'stm10'		# Interface name
+}
 TOP_NUM = '100'
 ARRIVAL_RATE = '10'
 USERNAME = 'admin'
@@ -44,6 +44,9 @@ Logger.addHandler(handler)
 Logger.addFilter(filter)
 
 # For parse_fieldname in order to reduce cpu loads.
+INTERFACE_LIST = []
+INTERFACE_LIST = list(D_INTERFACE_LIST.values())
+
 CMD_FOR_FIELD = ["echo \'show int {} flows with arrival_rate > {} top {} by \
                 average_rate select distress geolocation autonomous_system \
                 retransmissions round_trip_time timeouts udp_jitter\' | {} \
@@ -83,7 +86,8 @@ def parsedate(today_date):
         month = parseDate[1]
         day = parseDate[2]
     except Exception as e:
-        logger(1, SCRIPT_MON_LOG_FILE, "parsedate() cannot be executed, {}".format(e))
+        #logger(1, SCRIPT_MON_LOG_FILE, "parsedate() cannot be executed, {}".format(e))
+        Logger.debug("parsedate() cannot be executed, {}".format(e))
         pass
     return [year, month, day]
 
@@ -190,9 +194,9 @@ def parse_csv(csv_data_row, csv_filepath, save_csv_users_folder):
 #            if count_values == len(result)+1:
 #                count_values = 1
 ################################################################################################################
-#   STM9
+#   EXTERNAL, this case, stm9
 ################################################################################################################
-            if row['in_if'] == 'stm9':
+            if row['in_if'] == D_INTERFACE_LIST['external']:
                 flowlog_csv_by_dsthost_path = save_csv_users_folder + row['dsthost'] + '-' + row['in_if'] + '-inbound.csv'
                 flowlog_txt_by_dsthost_path = save_csv_users_folder + row['dsthost'] + '-' + row['in_if'] + '-inbound.txt'
 ################################################################################################################
@@ -236,9 +240,9 @@ def parse_csv(csv_data_row, csv_filepath, save_csv_users_folder):
                     if count_values == len(result)+1:
                         count_values = 1
 ################################################################################################################
-#   STM10
+#   INTERNAL, this case, stm10
 ################################################################################################################
-            elif row['in_if'] == 'stm10':
+            elif row['in_if'] == D_INTERFACE_LIST['internal']:
                 flowlog_csv_by_srchost_path = save_csv_users_folder + row['srchost'] + '-' + row['in_if'] + '-outbound.csv'
                 flowlog_txt_by_srchost_path = save_csv_users_folder + row['srchost'] + '-' + row['in_if'] + '-outbound.txt'
 ################################################################################################################
@@ -396,6 +400,35 @@ def get_lastmonth():
 def is_month_begin():
     return datetime.today() + pd.offsets.MonthBegin(0) == datetime.today()
 
+def make_archive_logfolder(archive_path):
+    print("make archive files in ()!!!".format(archive_path))
+
+def archive_rotate():
+    global archive_count
+    if is_month_begin():
+        current_year, last_year, current_month, last_month = get_lastmonth()
+        print ("{}, {}, {}, {}, -> archive last_month folder".format(str(current_year), str(last_year), str(current_month), str(last_month)))
+        if current_month >= 1 or current_month < 10:
+            current_month = '0'+str(current_month)
+        else:
+            current_month = str(current_month)
+            if last_month >= 1 or last_month < 10:
+                last_month = '0'+str(last_month)
+            else:
+                last_month = str(last_month)
+        current_year = str(current_year)
+        last_year = str(last_year)
+        archive_path = FLOW_USER_LOG_FOLDER + '/' + last_year + last_month
+        if archive_count == 1:
+            make_archive_logfolder(archive_path)
+            print("archive_count : %d " % archive_count)
+            archive_count += 1
+    else:
+        print("archive_count : %d " % archive_count)
+        print ("not archive last_month folder")
+        archive_count = 1
+
+
 # Get filepath and command string
 def get_filepaths(foldername, i):
     try:
@@ -439,29 +472,7 @@ def logger(type, path, contents):
 
 def main():
     while True:
-#        if is_month_begin():
-#            global archive_count
-#            print ("archive last_month folder")
-#            current_year, last_year, current_month, last_month = get_lastmonth()
-#            diff_month = current_month - last_month
-#            diff_year = current_year - last_year
-#            if current_month >= 1 or current_month < 10:
-#                current_month = '0'+str(current_month)
-#            else:
-#                current_month = str(current_month)
-#            if last_month >= 1 or last_month < 10:
-#                last_month = '0'+str(last_month)
-#            else:
-#                last_month = str(last_month)
-#            current_year = str(current_year)
-#            last_year = str(last_year)
-#            archive_path = FLOW_USER_LOG_FOLDER + '/' + last_year + last_month
-#            if archive_count == 1:
-#                make_archive_logfolder(archive_path)
-#                archive_count += 1
-#        else:
-#            print ("not archive last_month folder")
-#            archive_count += 1
+        archive_rotate()
         curTime = get_nowdate() # curTime[0] - ymd, curTime[1] - ymd h:m:s
         foldername = parsedate(curTime[0])
         for i in range(len(INTERFACE_LIST)):
