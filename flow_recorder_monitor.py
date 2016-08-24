@@ -16,8 +16,8 @@ FLOW_LOG_FOLDER_PATH = r'/var/log/flows/'
 SCRIPT_MON_LOG_FILE = r'/var/log/flow_recorder.log'
 SCRIPT_MON_LOG_FOLDER = r'/var/log/'
 SCRIPT_PATH = r'/etc/stmfiles/files/scripts/'
-SCRIPT_FILENAME = r'flow_recorder.py'
-RECORDER_SCRIPT_FILENAME = r'flow_recorder.py'
+SCRIPT_FILENAME = r'flow_recorder_test.py'
+RECORDER_SCRIPT_FILENAME = r'flow_recorder_test.py'
 MONITOR_SCRIPT_FILENAME = r'flow_recorder_monitor.py'
 MON_LOG_FILENAME = r'flow_recorder.log'
 LOGSIZE = 50000000 # 1000 = 1Kbyte, 1000000 = 1Mbyte, 50000000 = 50Mbyte
@@ -99,7 +99,7 @@ def logrotate(logfilepath, logsize):
         if not os.path.isfile(logfilepath):
             err_file = open(logfilepath, 'w')
             err_file.close()
-            Logger.error("File is generated again because of size({})".format(str(logsize)))
+            Logger.info("File is generated again because of size({})".format(str(logsize)))
     except Exception as e:
         Logger.error("logrotate() cannot be executed, {}".format(e))
         pass
@@ -112,7 +112,7 @@ def do_flow_recorder(script_name_path, curTime, process_name):
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
                          shell=True)
-        Logger("{} process is restarting! check ps -ef |grep {}".format(process_name, process_name))
+        Logger.info("{} process is restarting! check ps -ef |grep {}".format(process_name, process_name))
     except Exception as e:
         Logger.error("do_flow_recorder() cannot be executed, {}".format(e))
         pass
@@ -144,9 +144,9 @@ def compare_process_count(curTime, process_name, recorder_process_count, monitor
             if not os.path.isfile(SCRIPT_MON_LOG_FILE):
                 err_file = open(SCRIPT_MON_LOG_FILE, 'w')
                 err_file.close()
-                Logger.error("Flow {} script is started".format(SCRIPT_FILENAME))
+                Logger.info("Flow {} script is started".format(SCRIPT_FILENAME))
             else:
-                Logger.error("{} Process is running.".format(process_name))
+                Logger.info("{} Process is running.".format(process_name))
                 monlog_size = get_logsize()
                 if monlog_size > LOGSIZE:
                     logrotate(SCRIPT_MON_LOG_FILE, monlog_size)
@@ -154,18 +154,18 @@ def compare_process_count(curTime, process_name, recorder_process_count, monitor
             if not os.path.isfile(SCRIPT_MON_LOG_FILE):
                 err_file = open(SCRIPT_MON_LOG_FILE, 'w')
                 err_file.close()
-                Logger.error("Flow {} script is not started".format(SCRIPT_FILENAME))
-                Logger.error("Flow process is not started")
+                Logger.info("Flow {} script is not started".format(SCRIPT_FILENAME))
+                Logger.info("Flow process is not started")
                 do_flow_recorder(SCRIPT_PATH+SCRIPT_FILENAME, curTime[1], process_name)
-                Logger.error("Flow {} script is started".format(SCRIPT_FILENAME))
-                Logger.error("Flow {} Process was restarted.".format(SCRIPT_FILENAME))
+                Logger.info("Flow {} script is started".format(SCRIPT_FILENAME))
+                Logger.info("Flow {} Process was restarted.".format(SCRIPT_FILENAME))
             else:
                 monlog_size = get_logsize()
                 if monlog_size > LOGSIZE:
                     logrotate(monlog_size)
-                Logger.error("Flow {} process is not running, will restart it".format(SCRIPT_FILENAME))
+                Logger.info("Flow {} process is not running, will restart it".format(SCRIPT_FILENAME))
                 do_flow_recorder(SCRIPT_PATH+SCRIPT_FILENAME, curTime[1], process_name)
-                Logger.error("Flow {} process was restarted.".format(SCRIPT_FILENAME))
+                Logger.info("Flow {} process was restarted.".format(SCRIPT_FILENAME))
         else:
             pass
     except Exception as e:
