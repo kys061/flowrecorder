@@ -91,7 +91,8 @@ def main():
         try:
             current_time = datetime.today().strftime("%Y:%m:%d")
             foldername = parsedate(current_time)
-            logfolderpath = r'/var/log/flows/users/' + foldername[0] + foldername[1] + '/' + foldername[0] + foldername[1] + foldername[2] + r'-'
+            #logfolderpath = r'/var/log/flows/users/' + foldername[0] + foldername[1] + '/' + foldername[0] + foldername[1] + foldername[2] + r'-'
+            logfolderpath = r'/var/log/flows/users/' + foldername[0] + foldername[1] + '/'  # redmine #2
             #do total
             if RECORD_CMD_TYPE == 0:
                 for i in range(len(INTERFACE_LIST)):
