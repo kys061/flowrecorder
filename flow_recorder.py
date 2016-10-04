@@ -42,10 +42,10 @@ STM_SCRIPT_PATH = r'/opt/stm/target/pcli/stm_cli.py'
 INTERVAL = 5
 TYPE_INTERVAL = 1 # for use if recording cmd type is 3(:all of them)
 # Recording file type selecting(0: only csv, 1: only txt, 2:csv and txt)
-RECORD_FILE_TYPE = 2
+RECORD_FILE_TYPE = 1
 # Recording cmd type selecting(0: total, 1: all users, 2:one user by src or
 # dst, 3: all of them)
-RECORD_CMD_TYPE = 2
+RECORD_CMD_TYPE = 1
 # Get current time
 CURRENTTIME_INIT = datetime.today().strftime("%Y:%m:%d")
 ################################################################################
@@ -60,7 +60,7 @@ CMD = []
 for i in range(len(INTERFACE_LIST)):
     CMD.append("echo \'show int {} flows with arrival_rate > {} top {} by \
 average_rate select distress geolocation autonomous_system \
-retransmissions round_trip_time timeouts udp_jitter\' | \
+retransmissions round_trip_time timeouts udp_jitter\' |sudo \
 {} {}:{}@{}".format(INTERFACE_LIST[i], ARRIVAL_RATE,
                     TOP_NUM, STM_SCRIPT_PATH, USERNAME, PASSWORD, DOMAIN))
 # RECORD_CMD_TYPE:2
@@ -70,7 +70,7 @@ for host in HOST:
         if intf == D_INTERFACE_LIST['internal']:
             CMD_BY_SOURCEHOST.append("echo \'show interface {} flows with source_host={} \
 application=http arrival_rate > {} top {} by average_rate select geolocation \
-autonomous_system  retransmissions round_trip_time timeouts' | {} \
+autonomous_system  retransmissions round_trip_time timeouts' |sudo {} \
 {}:{}@{}".format(intf, host, ARRIVAL_RATE, TOP_NUM, STM_SCRIPT_PATH,
                  USERNAME, PASSWORD, DOMAIN))
 # RECORD_CMD_TYPE:2
@@ -80,7 +80,7 @@ for host in HOST:
         if intf == D_INTERFACE_LIST['external']:
             CMD_BY_DESTHOST.append("echo \'show interface {} flows with dest_host={} \
 application=http arrival_rate > {} top {} by average_rate select geolocation \
-autonomous_system  retransmissions round_trip_time timeouts' | {} \
+autonomous_system  retransmissions round_trip_time timeouts' |sudo {} \
 {}:{}@{}".format(intf, host, ARRIVAL_RATE, TOP_NUM, STM_SCRIPT_PATH,
                  USERNAME, PASSWORD, DOMAIN))
 ################################################################################
