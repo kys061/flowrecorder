@@ -5,34 +5,50 @@
 import sys
 from datetime import datetime
 import time
-#sys.path.append("/root/flowrecorder/beta")
+from collections import defaultdict
+#sys.path.append("/root/dev/flow_recorder_module")
 from flow_recorder_mod import *
 from SubnetTree import SubnetTree
 ################################################################################
 # Env for (eg. echo 'show int stm3 flows top 100 by average_rate' | ./stm_cli.py
 # admin:admin@localhost)
 ################################################################################
-D_INTERFACE_LIST = {
-    'external':'stm9',          # Interface name
-    'internal':'stm10'          # Interface name
-}
+#D_INTERFACE_LIST = {
+#    'external':'stm9',          # Interface name
+#    'internal':'stm10'          # Interface name
+#}
+
+DD_INTERFACE_LIST = [
+    ('external' , 'stm13'),
+    ('external' , 'stm5'),
+    ('internal' , 'stm14'),
+    ('internal' , 'stm6')
+]
+
 # for cmd type is 1 :all users and do log for INCLUDE subnets
 INCLUDE = [
-        '101.250.240.0/24',
-        '101.250.241.0/24',
-        '101.250.242.0/24',
-        '211.235.0.0/16',
-        '211.238.0.0/16',
-        '192.168.0.0/16',
-        '10.0.0.0/8',
-        '172.16.0.0/16'
+    '101.250.160.0/19',
+    '101.250.192.0/20',
+    '101.250.208.0/20',
+    '101.250.224.0/19',
+    '103.11.44.0/22',
+    '150.107.80.0/22',
+    '115.126.192.0/18',
+    '118.103.192.0/19',
+    '183.91.192.0/18',
+    '203.128.160.0/19',
+    '203.212.96.0/19',
+    '210.111.160.0/19',
+    '211.112.64.0/19',
+    '211.235.32.0/19',
+    '211.238.64.0/19'
 ]
 # for cmd type is 2 : one user by src or dst so host must be in internal iprange
 HOST = [
     '211.238.90.70',
     '211.238.87.63'
 ]
-TOP_NUM = '100000'
+TOP_NUM = '1000'
 ARRIVAL_RATE = '10'
 DOMAIN = 'localhost'
 USERNAME = 'admin'
@@ -54,7 +70,17 @@ CURRENTTIME_INIT = datetime.today().strftime("%Y:%m:%d")
 # For parse_fieldname in order to reduce cpu loads.
 ################################################################################
 INTERFACE_LIST = []
-INTERFACE_LIST = list(D_INTERFACE_LIST.values())
+#INTERFACE_LIST = list(D_INTERFACE_LIST.values())
+#
+D_INTERFACE_LIST = defaultdict(list)
+for k,v in DD_INTERFACE_LIST:
+    D_INTERFACE_LIST[k].append(v)
+
+for i,v in enumerate(D_INTERFACE_LIST.values()):
+    for j,val in enumerate(v):
+        INTERFACE_LIST.append(val)
+#INTERFACE_LIST = [ val for j, val in enumerate(v) for i, v in enumerate(D_INTERFACE_LIST.values()) ]
+
 # RECORD_CMD_TYPE:0 and 1
 CMD = []
 for i in range(len(INTERFACE_LIST)):
