@@ -6,7 +6,7 @@ import sys
 from datetime import datetime
 import time
 from collections import defaultdict
-#sys.path.append("/root/dev/flow_recorder_module")
+#sys.path.append("/home/saisei/dev/flow_recorder_module")
 from flow_recorder_mod import *
 from SubnetTree import SubnetTree
 ################################################################################
@@ -14,54 +14,141 @@ from SubnetTree import SubnetTree
 # admin:admin@localhost)
 ################################################################################
 DD_INTERFACE_LIST = [
-    ('external' , 'stm13'),
-    ('external' , 'stm5'),
-    ('internal' , 'stm14'),
-    ('internal' , 'stm6')
+    ('external' , 'p1p1-ext1'),
+    ('internal' , 'p1p2-int1'),
+    ('external' , 'p2p1-ext2'),
+    ('internal' , 'p2p2-int2')
 ]
 
 # for cmd type is 1 :all users and do log for INCLUDE subnets
 INCLUDE = [
-    '101.250.160.0/19',
-    '101.250.192.0/20',
-    '101.250.208.0/20',
-    '101.250.224.0/19',
-    '103.11.44.0/22',
-    '150.107.80.0/22',
-    '115.126.192.0/18',
-    '118.103.192.0/19',
-    '183.91.192.0/18',
-    '203.128.160.0/19',
-    '203.212.96.0/19',
-    '210.111.160.0/19',
-    '211.112.64.0/19',
-    '211.235.32.0/19',
-    '211.238.64.0/19'
+'10.10.0.0/16',
+'10.24.33.0/24',
+'10.27.0.0/16',
+'10.60.0.0/16',
+'10.160.0.0/16',
+'10.161.0.0/16',
+'10.162.0.0/16',
+'10.163.0.0/16',
+'10.164.0.0/16',
+'10.165.0.0/16',
+'43.227.116.0/22',
+'45.125.232.0/22',
+'103.194.108.0/22',
+'103.243.200.0/24',
+'103.243.201.0/24',
+'103.243.202.0/24',
+'103.243.203.0/24',
+'106.249.18.0/23',
+'106.249.20.0/22',
+'106.249.24.0/21',
+'106.249.32.0/23',
+'133.186.128.0/17',
+'133.186.128.0/24',
+'133.186.136.0/24',
+'133.186.137.0/24',
+'106.249.32.0/24',
+'133.186.133.0/24',
+'133.186.148.0/24',
+'106.249.31.0/25',
+'133.186.131.0/24',
+'133.186.138.0/24',
+'133.186.139.0/24',
+'133.186.132.0/24',
+'133.186.134.0/24',
+'133.186.135.0/24',
+'45.249.162.128/25',
+'45.249.161.0/25',
+'45.249.163.0/25',
+'45.249.161.128/25',
+'45.249.163.128/25',
+'45.249.160.128/25',
+'45.249.162.0/25',
+'45.249.160.0/25',
+'103.218.156.0/25',
+'103.218.156.128/25',
+'103.218.157.0/25',
+'103.218.157.128/25',
+'103.218.158.0/25',
+'103.218.158.128/25',
+'103.218.159.0/25',
+'103.218.159.128/25',
 ]
 # for cmd type is 2 : one user by src or dst so host must be in internal iprange
 HOST = [
-    '211.238.90.70',
-    '211.238.87.63'
+'10.161.147.34',
+'103.243.201.23',
+'133.186.163.29',
+'133.186.163.28',
+'133.186.163.30',
+'133.186.163.31',
+'133.186.163.32',
+'133.186.163.41',
+'133.186.163.42',
+'133.186.163.58',
+'133.186.164.2',
+'133.186.165.209',
+'133.186.165.241',
+'133.186.165.243',
+'133.186.165.43',
+'133.186.165.71',
+'133.186.165.72',
+'133.186.165.73',
+'133.186.165.74',
+'133.186.165.78',
+'133.186.165.81',
+'133.186.165.82',
+'133.186.165.85',
+'133.186.165.86',
+'133.186.165.89',
+'133.186.165.8',
+'133.186.165.90',
+'133.186.165.91',
+'133.186.165.92',
+'133.186.173.18',
+'133.186.186.38',
+'133.186.187.13',
+'133.186.187.15',
+'133.186.187.16',
+'133.186.187.17',
+'133.186.187.18',
+'133.186.188.10',
+'133.186.188.11',
+'133.186.188.12',
+'133.186.188.13',
+'133.186.188.14',
+'133.186.188.15',
+'133.186.188.17',
+'133.186.188.19',
+'133.186.188.20',
+'133.186.188.21',
+'133.186.188.22',
+'133.186.188.4',
+'133.186.188.5',
+'133.186.188.6',
+'133.186.188.7',
+'133.186.188.8',
+'133.186.188.9',
 ]
-TOP_NUM = '1000'
+TOP_NUM = '10000'
 ARRIVAL_RATE = '10'
 DOMAIN = 'localhost'
-USERNAME = 'admin'
-PASSWORD = 'admin'
+USERNAME = 'monitor_only'
+PASSWORD = 'monitor_only'
 STM_SCRIPT_PATH = r'/opt/stm/target/pcli/stm_cli.py'
 # For several interfaces(eg. iterate logging for interfaces(stm01, stm02) sequently)
-INTERVAL = 5
-TYPE_INTERVAL = 1 # for use if recording cmd type is 3(:all of them)
+INTERVAL = 3    # type interval
+SCRIPT_INTERVAL = 1    # script interval
 # Recording file type selecting(0: only csv, 1: only txt, 2:csv and txt)
-RECORD_FILE_TYPE = 1
+RECORD_FILE_TYPE = 2
 # Recording cmd type selecting(0: total, 1: all users, 2:one user by src or dst, 3: all of them)
 '''
 0(flows of total) : extracting all flows in cmd.
 1(flows of all users) : extracting all flows and user's ip in INCLUDE.
 2(flows of user by src or dst) : extracting user's ip in HOST.
-3(all of them) : extracting all above explained
+3(all of them) : extracting all explained above
 '''
-RECORD_CMD_TYPE = 1
+RECORD_CMD_TYPE = 3
 # Get current time
 CURRENTTIME_INIT = datetime.today().strftime("%Y:%m:%d")
 ################################################################################
@@ -86,268 +173,89 @@ CMD = []
 for i in range(len(INTERFACE_LIST)):
     CMD.append("echo \'show int {} flows with arrival_rate > {} top {} by \
 average_rate select distress geolocation autonomous_system \
-retransmissions round_trip_time timeouts udp_jitter\' |sudo \
+retransmissions round_trip_time timeouts udp_jitter red_threshold_discards drop_reason in_control\' |sudo \
 {} {}:{}@{}".format(INTERFACE_LIST[i], ARRIVAL_RATE,
                     TOP_NUM, STM_SCRIPT_PATH, USERNAME, PASSWORD, DOMAIN))
 # RECORD_CMD_TYPE:2
 CMD_BY_SOURCEHOST = []
 for host in HOST:
     for intf in INTERFACE_LIST:
-        if intf == D_INTERFACE_LIST['internal']:
-            CMD_BY_SOURCEHOST.append("echo \'show interface {} flows with source_host={} \
-application=http arrival_rate > {} top {} by average_rate select geolocation \
+        for d_intf in D_INTERFACE_LIST['internal']:
+            if intf == d_intf:
+                CMD_BY_SOURCEHOST.append("echo \'show interface {} flows with source_host={} \
+arrival_rate > {} top {} by average_rate select geolocation \
 autonomous_system  retransmissions round_trip_time timeouts' |sudo {} \
 {}:{}@{}".format(intf, host, ARRIVAL_RATE, TOP_NUM, STM_SCRIPT_PATH,
-                 USERNAME, PASSWORD, DOMAIN))
+                    USERNAME, PASSWORD, DOMAIN))
 # RECORD_CMD_TYPE:2
 CMD_BY_DESTHOST = []
 for host in HOST:
     for intf in INTERFACE_LIST:
-        if intf == D_INTERFACE_LIST['external']:
-            CMD_BY_DESTHOST.append("echo \'show interface {} flows with dest_host={} \
-application=http arrival_rate > {} top {} by average_rate select geolocation \
+        for d_intf in D_INTERFACE_LIST['external']:
+            if intf == d_intf:
+                CMD_BY_DESTHOST.append("echo \'show interface {} flows with dest_host={} \
+arrival_rate > {} top {} by average_rate select geolocation \
 autonomous_system  retransmissions round_trip_time timeouts' |sudo {} \
 {}:{}@{}".format(intf, host, ARRIVAL_RATE, TOP_NUM, STM_SCRIPT_PATH,
-                 USERNAME, PASSWORD, DOMAIN))
+                    USERNAME, PASSWORD, DOMAIN))
 ################################################################################
 
 ################################################################################
 def main():
     while True:
         try:
+            monlog_size = get_logsize()
+            if monlog_size > LOGSIZE or monlog_size < 1000:
+                logrotate(SCRIPT_MON_LOG_FILE, monlog_size)
+                init_logger()
             current_time = datetime.today().strftime("%Y:%m:%d")
             foldername = parsedate(current_time)
             #logfolderpath = r'/var/log/flows/users/' + foldername[0] + foldername[1] + '/' + foldername[0] + foldername[1] + foldername[2] + r'-'
             logfolderpath = r'/var/log/flows/users/' + foldername[0] + foldername[1] + '/'  # redmine #2
-            #do total
-            if RECORD_CMD_TYPE == 0:
+            # total or all users
+            if RECORD_CMD_TYPE == 0 or RECORD_CMD_TYPE == 1:
                 for i in range(len(INTERFACE_LIST)):
                     file_paths = get_filepaths(foldername, INTERFACE_LIST, TOP_NUM, i)   # Get list of filepaths[txtpath, csvpath]
-                    if RECORD_FILE_TYPE == 0:
-                        fr_total = Flowrecorder(CMD[i],
-                                          D_INTERFACE_LIST,
-                                          foldername,
-                                          file_paths,
-                                          logfolderpath,
-                                          include_subnet_tree)
-                        fr_total.start_fr_csv()
-                        time.sleep(INTERVAL)
-                    elif RECORD_FILE_TYPE == 1:
-                        fr_total = Flowrecorder(CMD[i],
-                                          D_INTERFACE_LIST,
-                                          foldername,
-                                          file_paths,
-                                          logfolderpath,
-                                          include_subnet_tree)
-                        fr_total.start_fr_txt()
-                        time.sleep(INTERVAL)
-                    elif RECORD_FILE_TYPE == 2:
-                        fr_total = Flowrecorder(CMD[i],
-                                          D_INTERFACE_LIST,
-                                          foldername,
-                                          file_paths,
-                                          logfolderpath,
-                                          include_subnet_tree)
-                        fr_total.start_fr_txt()
-                        fr_total.start_fr_csv()
-                        time.sleep(INTERVAL)
-                    else:
-                        pass
-            #do allusers
-            elif RECORD_CMD_TYPE == 1:
-                for j in range(len(INTERFACE_LIST)):
-                    file_paths = get_filepaths(foldername, INTERFACE_LIST, TOP_NUM, j)
-                    fr_allusers = Flowrecorder(CMD[j],
-                                            D_INTERFACE_LIST,
-                                            foldername,
-                                            file_paths,
-                                            logfolderpath,
-                                            include_subnet_tree)
-                    fr_allusers.start_fr_by_host(RECORD_FILE_TYPE)
+                    fr = Flowrecorder(CMD[i], D_INTERFACE_LIST, foldername,
+                                            file_paths, logfolderpath, include_subnet_tree)
+                    fr.start(RECORD_FILE_TYPE, RECORD_CMD_TYPE)
                     time.sleep(INTERVAL)
-            #do one user
+            # one user
             elif RECORD_CMD_TYPE == 2:
-                for k in range(len(CMD_BY_SOURCEHOST)):
-                    file_paths = get_filepaths(foldername, INTERFACE_LIST, TOP_NUM, k)
-                    if RECORD_FILE_TYPE == 0:
-                        fr_by_srchost = Flowrecorder(CMD_BY_SOURCEHOST[k],
-                                                     D_INTERFACE_LIST,
-                                                     foldername,
-                                                     file_paths,
-                                                     logfolderpath,
-                                                     include_subnet_tree)
-                        fr_by_srchost.start_fr_csv()
-                        time.sleep(INTERVAL)
-                    elif RECORD_FILE_TYPE == 1:
-                        fr_by_srchost = Flowrecorder(CMD_BY_SOURCEHOST[k],
-                                                     D_INTERFACE_LIST,
-                                                     foldername,
-                                                     file_paths,
-                                                     logfolderpath,
-                                                     include_subnet_tree)
-                        fr_by_srchost.start_fr_txt()
-                        time.sleep(INTERVAL)
-                    elif RECORD_FILE_TYPE == 2:
-                        fr_by_srchost = Flowrecorder(CMD_BY_SOURCEHOST[k],
-                                                     D_INTERFACE_LIST,
-                                                     foldername,
-                                                     file_paths,
-                                                     logfolderpath,
-                                                     include_subnet_tree)
-                        fr_by_srchost.start_fr_txt()
-                        fr_by_srchost.start_fr_csv()
-                        time.sleep(INTERVAL)
-                    else:
-                        pass
+                for j in range(len(CMD_BY_SOURCEHOST)):
+                    file_paths = get_filepaths(foldername, INTERFACE_LIST, TOP_NUM, j%len(INTERFACE_LIST))
+                    fr = Flowrecorder(CMD_BY_SOURCEHOST[j], D_INTERFACE_LIST, foldername,
+                                        file_paths, logfolderpath, include_subnet_tree)
+                    fr.start(RECORD_FILE_TYPE, RECORD_CMD_TYPE)
                 for l in range(len(CMD_BY_DESTHOST)):
-                    file_paths = get_filepaths(foldername, INTERFACE_LIST, TOP_NUM, l)
-                    if RECORD_FILE_TYPE == 0:
-                        fr_by_dsthost = Flowrecorder(CMD_BY_DESTHOST[l],
-                                                     D_INTERFACE_LIST,
-                                                     foldername,
-                                                     file_paths,
-                                                     logfolderpath,
-                                                     include_subnet_tree)
-                        fr_by_dsthost.start_fr_csv()
-                        time.sleep(INTERVAL)
-                    elif RECORD_FILE_TYPE == 1:
-                        fr_by_dsthost = Flowrecorder(CMD_BY_DESTHOST[l],
-                                                     D_INTERFACE_LIST,
-                                                     foldername,
-                                                     file_paths,
-                                                     logfolderpath,
-                                                     include_subnet_tree)
-                        fr_by_dsthost.start_fr_txt()
-                        time.sleep(INTERVAL)
-                    elif RECORD_FILE_TYPE == 2:
-                        fr_by_dsthost = Flowrecorder(CMD_BY_DESTHOST[l],
-                                                     D_INTERFACE_LIST,
-                                                     foldername,
-                                                     file_paths,
-                                                     logfolderpath,
-                                                     include_subnet_tree)
-                        fr_by_dsthost.start_fr_txt()
-                        fr_by_dsthost.start_fr_csv()
-                        time.sleep(INTERVAL)
-                    else:
-                        pass
+                    file_paths = get_filepaths(foldername, INTERFACE_LIST, TOP_NUM, l%len(INTERFACE_LIST))
+                    fr = Flowrecorder(CMD_BY_DESTHOST[l], D_INTERFACE_LIST, foldername,
+                                        file_paths, logfolderpath, include_subnet_tree)
+                    fr.start(RECORD_FILE_TYPE, RECORD_CMD_TYPE)
             # all of them
             elif RECORD_CMD_TYPE == 3:
-                # total
+                # total or all users
                 for i in range(len(INTERFACE_LIST)):
                     file_paths = get_filepaths(foldername, INTERFACE_LIST, TOP_NUM, i)   # Get list of filepaths[txtpath, csvpath]
-                    if RECORD_FILE_TYPE == 0:
-                        fr_total = Flowrecorder(CMD[i],
-                                          D_INTERFACE_LIST,
-                                          foldername,
-                                          file_paths,
-                                          logfolderpath,
-                                          include_subnet_tree)
-                        fr_total.start_fr_csv()
-                        time.sleep(TYPE_INTERVAL)
-                    elif RECORD_FILE_TYPE == 1:
-                        fr_total = Flowrecorder(CMD[i],
-                                          D_INTERFACE_LIST,
-                                          foldername,
-                                          file_paths,
-                                          logfolderpath,
-                                          include_subnet_tree)
-                        fr_total.start_fr_txt()
-                        time.sleep(TYPE_INTERVAL)
-                    elif RECORD_FILE_TYPE == 2:
-                        fr_total = Flowrecorder(CMD[i],
-                                          D_INTERFACE_LIST,
-                                          foldername,
-                                          file_paths,
-                                          logfolderpath,
-                                          include_subnet_tree)
-                        fr_total.start_fr_txt()
-                        time.sleep(TYPE_INTERVAL)
-                        fr_total.start_fr_csv()
-                        time.sleep(TYPE_INTERVAL)
-                    else:
-                        pass
-                # all users
-                for j in range(len(INTERFACE_LIST)):
-                    file_paths = get_filepaths(foldername, INTERFACE_LIST, TOP_NUM, j)
-                    fr_allusers = Flowrecorder(CMD[j],
-                                            D_INTERFACE_LIST,
-                                            foldername,
-                                            file_paths,
-                                            logfolderpath,
-                                            include_subnet_tree)
-                    fr_allusers.start_fr_by_host(RECORD_FILE_TYPE)
-                    time.sleep(TYPE_INTERVAL)
-                #do one user
-                for k in range(len(CMD_BY_SOURCEHOST)):
-                    file_paths = get_filepaths(foldername, INTERFACE_LIST, TOP_NUM, k)
-                    if RECORD_FILE_TYPE == 0:
-                        fr_by_srchost = Flowrecorder(CMD_BY_SOURCEHOST[k],
-                                                     D_INTERFACE_LIST,
-                                                     foldername,
-                                                     file_paths,
-                                                     logfolderpath,
-                                                     include_subnet_tree)
-                        fr_by_srchost.start_fr_csv()
-                        time.sleep(TYPE_INTERVAL)
-                    elif RECORD_FILE_TYPE == 1:
-                        fr_by_srchost = Flowrecorder(CMD_BY_SOURCEHOST[k],
-                                                     D_INTERFACE_LIST,
-                                                     foldername,
-                                                     file_paths,
-                                                     logfolderpath,
-                                                     include_subnet_tree)
-                        fr_by_srchost.start_fr_txt()
-                        time.sleep(TYPE_INTERVAL)
-                    elif RECORD_FILE_TYPE == 2:
-                        fr_by_srchost = Flowrecorder(CMD_BY_SOURCEHOST[k],
-                                                     D_INTERFACE_LIST,
-                                                     foldername,
-                                                     file_paths,
-                                                     logfolderpath,
-                                                     include_subnet_tree)
-                        fr_by_srchost.start_fr_txt()
-                        time.sleep(TYPE_INTERVAL)
-                        fr_by_srchost.start_fr_csv()
-                        time.sleep(TYPE_INTERVAL)
-                    else:
-                        pass
+                    fr = Flowrecorder(CMD[i], D_INTERFACE_LIST, foldername,
+                                            file_paths, logfolderpath, include_subnet_tree)
+                    fr.start(RECORD_FILE_TYPE, RECORD_CMD_TYPE)
+                    time.sleep(INTERVAL)
+                # one user
+                for j in range(len(CMD_BY_SOURCEHOST)):
+                    file_paths = get_filepaths(foldername, INTERFACE_LIST, TOP_NUM, j%len(INTERFACE_LIST))
+                    fr = Flowrecorder(CMD_BY_SOURCEHOST[j], D_INTERFACE_LIST, foldername,
+                                        file_paths, logfolderpath, include_subnet_tree)
+                    fr.start(RECORD_FILE_TYPE, RECORD_CMD_TYPE)
                 for l in range(len(CMD_BY_DESTHOST)):
-                    file_paths = get_filepaths(foldername, INTERFACE_LIST, TOP_NUM, l)
-                    if RECORD_FILE_TYPE == 0:
-                        fr_by_dsthost = Flowrecorder(CMD_BY_DESTHOST[l],
-                                                     D_INTERFACE_LIST,
-                                                     foldername,
-                                                     file_paths,
-                                                     logfolderpath,
-                                                     include_subnet_tree)
-                        fr_by_dsthost.start_fr_csv()
-                        time.sleep(TYPE_INTERVAL)
-                    elif RECORD_FILE_TYPE == 1:
-                        fr_by_dsthost = Flowrecorder(CMD_BY_DESTHOST[l],
-                                                     D_INTERFACE_LIST,
-                                                     foldername,
-                                                     file_paths,
-                                                     logfolderpath,
-                                                     include_subnet_tree)
-                        fr_by_dsthost.start_fr_txt()
-                        time.sleep(TYPE_INTERVAL)
-                    elif RECORD_FILE_TYPE == 2:
-                        fr_by_dsthost = Flowrecorder(CMD_BY_DESTHOST[l],
-                                                     D_INTERFACE_LIST,
-                                                     foldername,
-                                                     file_paths,
-                                                     logfolderpath,
-                                                     include_subnet_tree)
-                        fr_by_dsthost.start_fr_txt()
-                        time.sleep(TYPE_INTERVAL)
-                        fr_by_dsthost.start_fr_csv()
-                        time.sleep(TYPE_INTERVAL)
-                    else:
-                        pass
+                    file_paths = get_filepaths(foldername, INTERFACE_LIST, TOP_NUM, l%len(INTERFACE_LIST))
+                    fr = Flowrecorder(CMD_BY_DESTHOST[l], D_INTERFACE_LIST, foldername,
+                                        file_paths, logfolderpath, include_subnet_tree)
+                    fr.start(RECORD_FILE_TYPE, RECORD_CMD_TYPE)
             else:
                 pass
-            time.sleep(30)
+            time.sleep(SCRIPT_INTERVAL)
+#            init_logger()
         except KeyboardInterrupt:
             print ("\r\nThe script is terminated by user interrupt!")
             print ("Bye!!")
