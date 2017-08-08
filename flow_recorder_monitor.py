@@ -3,19 +3,18 @@
 # Copyright (C) 2016 Saisei Networks Inc. All rights reserved.
 
 import sys
-sys.path.append("/root/dev/flow_recorder_module")
+import time
+#sys.path.append("/home/saisei/dev/flow_recorder_module")
 from flow_recorder_mod import *
 
 ################################################################################
 # Config
 ################################################################################
-#SCRIPT_FILENAME = r'flow_recorder.py'
-#RECORDER_SCRIPT_FILENAME = r'flow_recorder.py'
-#MONITOR_SCRIPT_FILENAME = r'flow_recorder_monitor.py'
 CHECK_TIME = 60	# seconds
 has_archive = False
 do_compress = False
 archive_period = 3  # set month period
+time.sleep(30)
 ################################################################################
 
 ################################################################################

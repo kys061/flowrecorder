@@ -9,6 +9,7 @@ from collections import defaultdict
 #sys.path.append("/home/saisei/dev/flow_recorder_module")
 from flow_recorder_mod import *
 from SubnetTree import SubnetTree
+import threading
 ################################################################################
 # Env for (eg. echo 'show int stm3 flows top 100 by average_rate' | ./stm_cli.py
 # admin:admin@localhost)
@@ -137,8 +138,8 @@ USERNAME = 'monitor_only'
 PASSWORD = 'monitor_only'
 STM_SCRIPT_PATH = r'/opt/stm/target/pcli/stm_cli.py'
 # For several interfaces(eg. iterate logging for interfaces(stm01, stm02) sequently)
-INTERVAL = 3    # type interval
-SCRIPT_INTERVAL = 1    # script interval
+INTERVAL = 0    # type interval
+SCRIPT_INTERVAL = 30    # script interval
 # Recording file type selecting(0: only csv, 1: only txt, 2:csv and txt)
 RECORD_FILE_TYPE = 2
 # Recording cmd type selecting(0: total, 1: all users, 2:one user by src or dst, 3: all of them)
@@ -199,55 +200,122 @@ autonomous_system  retransmissions round_trip_time timeouts' |sudo {} \
 {}:{}@{}".format(intf, host, ARRIVAL_RATE, TOP_NUM, STM_SCRIPT_PATH,
                     USERNAME, PASSWORD, DOMAIN))
 ################################################################################
-
 ################################################################################
 def main():
     while True:
         try:
+#            monlog_size = get_logsize()
+#            if monlog_size > LOGSIZE or monlog_size < 1000:
+#                logrotate(SCRIPT_MON_LOG_FILE, monlog_size)
+#                init_logger()
             current_time = datetime.today().strftime("%Y:%m:%d")
             foldername = parsedate(current_time)
             #logfolderpath = r'/var/log/flows/users/' + foldername[0] + foldername[1] + '/' + foldername[0] + foldername[1] + foldername[2] + r'-'
             logfolderpath = r'/var/log/flows/users/' + foldername[0] + foldername[1] + '/'  # redmine #2
+            threads_all = []
+            threads_src = []
+            threads_dst = []
             # total or all users
             if RECORD_CMD_TYPE == 0 or RECORD_CMD_TYPE == 1:
                 for i in range(len(INTERFACE_LIST)):
                     file_paths = get_filepaths(foldername, INTERFACE_LIST, TOP_NUM, i)   # Get list of filepaths[txtpath, csvpath]
-                    fr = Flowrecorder(CMD[i], D_INTERFACE_LIST, foldername,
+                    fr_all = Flowrecorder(CMD[i], D_INTERFACE_LIST, foldername,
                                             file_paths, logfolderpath, include_subnet_tree)
-                    fr.start(RECORD_FILE_TYPE, RECORD_CMD_TYPE)
-                    time.sleep(INTERVAL)
+#                    fr.start(RECORD_FILE_TYPE, RECORD_CMD_TYPE)
+                    t = threading.Thread(target=fr_all.start, args=(RECORD_FILE_TYPE, RECORD_CMD_TYPE))
+                    threads_all.append(t)
+                for i in range(len(INTERFACE_LIST)):
+                    threads_all[i].start()
+                for i in range(len(INTERFACE_LIST)):
+                    threads_all[i].join()
             # one user
             elif RECORD_CMD_TYPE == 2:
+#                start_time = time.time()
                 for j in range(len(CMD_BY_SOURCEHOST)):
                     file_paths = get_filepaths(foldername, INTERFACE_LIST, TOP_NUM, j%len(INTERFACE_LIST))
-                    fr = Flowrecorder(CMD_BY_SOURCEHOST[j], D_INTERFACE_LIST, foldername,
+                    fr_src = Flowrecorder(CMD_BY_SOURCEHOST[j], D_INTERFACE_LIST, foldername,
                                         file_paths, logfolderpath, include_subnet_tree)
-                    fr.start(RECORD_FILE_TYPE, RECORD_CMD_TYPE)
+                    t = threading.Thread(target=fr_src.start, args=(RECORD_FILE_TYPE, RECORD_CMD_TYPE))
+                    threads_src.append(t)
+#                    fr.start(RECORD_FILE_TYPE, RECORD_CMD_TYPE)
+                for j in range(len(CMD_BY_SOURCEHOST)):
+                    threads_src[j].start()
+
+                for j in range(len(CMD_BY_SOURCEHOST)):
+                    threads_src[j].join()
+#                print ("cmd by srchost all done elapsed : {}".format(time.time() - start_time))
+#                start_second_time = time.time()
                 for l in range(len(CMD_BY_DESTHOST)):
                     file_paths = get_filepaths(foldername, INTERFACE_LIST, TOP_NUM, l%len(INTERFACE_LIST))
-                    fr = Flowrecorder(CMD_BY_DESTHOST[l], D_INTERFACE_LIST, foldername,
+                    fr_dst = Flowrecorder(CMD_BY_DESTHOST[l], D_INTERFACE_LIST, foldername,
                                         file_paths, logfolderpath, include_subnet_tree)
-                    fr.start(RECORD_FILE_TYPE, RECORD_CMD_TYPE)
+                    t = threading.Thread(target=fr_dst.start, args=(RECORD_FILE_TYPE, RECORD_CMD_TYPE))
+                    threads_dst.append(t)
+#                    fr.start(RECORD_FILE_TYPE, RECORD_CMD_TYPE)
+                for l in range(len(CMD_BY_DESTHOST)):
+                    threads_dst[l].start()
+
+                for l in range(len(CMD_BY_DESTHOST)):
+                    threads_dst[l].join()
+#                print ("cmd by dsthost all done elapsed : {}".format(time.time() - start_second_time))
+
             # all of them
             elif RECORD_CMD_TYPE == 3:
+#                start_all_time = time.time()
                 # total or all users
                 for i in range(len(INTERFACE_LIST)):
                     file_paths = get_filepaths(foldername, INTERFACE_LIST, TOP_NUM, i)   # Get list of filepaths[txtpath, csvpath]
                     fr = Flowrecorder(CMD[i], D_INTERFACE_LIST, foldername,
                                             file_paths, logfolderpath, include_subnet_tree)
-                    fr.start(RECORD_FILE_TYPE, RECORD_CMD_TYPE)
-                    time.sleep(INTERVAL)
+#                    fr.start(RECORD_FILE_TYPE, RECORD_CMD_TYPE)
+                    t = threading.Thread(target=fr.start, args=(RECORD_FILE_TYPE, RECORD_CMD_TYPE))
+                    threads_all.append(t)
+                for i in range(len(INTERFACE_LIST)):
+                    threads_all[i].start()
+                for i in range(len(INTERFACE_LIST)):
+                    threads_all[i].join()
+#                print ("cmd by allhost all done elapsed : {}".format(time.time() - start_all_time))
+
+#                start_time = time.time()
                 # one user
                 for j in range(len(CMD_BY_SOURCEHOST)):
                     file_paths = get_filepaths(foldername, INTERFACE_LIST, TOP_NUM, j%len(INTERFACE_LIST))
                     fr = Flowrecorder(CMD_BY_SOURCEHOST[j], D_INTERFACE_LIST, foldername,
                                         file_paths, logfolderpath, include_subnet_tree)
-                    fr.start(RECORD_FILE_TYPE, RECORD_CMD_TYPE)
+                    t = threading.Thread(target=fr.start, args=(RECORD_FILE_TYPE, RECORD_CMD_TYPE))
+                    threads_src.append(t)
+#                    fr.start(RECORD_FILE_TYPE, RECORD_CMD_TYPE)
+                for j in range(len(CMD_BY_SOURCEHOST)):
+                    threads_src[j].start()
+
+                for j in range(len(CMD_BY_SOURCEHOST)):
+                    threads_src[j].join()
+#                print ("cmd by srchost all done elapsed : {}".format(time.time() - start_time))
+#                start_second_time = time.time()
                 for l in range(len(CMD_BY_DESTHOST)):
                     file_paths = get_filepaths(foldername, INTERFACE_LIST, TOP_NUM, l%len(INTERFACE_LIST))
                     fr = Flowrecorder(CMD_BY_DESTHOST[l], D_INTERFACE_LIST, foldername,
                                         file_paths, logfolderpath, include_subnet_tree)
-                    fr.start(RECORD_FILE_TYPE, RECORD_CMD_TYPE)
+                    t = threading.Thread(target=fr.start, args=(RECORD_FILE_TYPE, RECORD_CMD_TYPE))
+                    threads_dst.append(t)
+#                    fr.start(RECORD_FILE_TYPE, RECORD_CMD_TYPE)
+                for l in range(len(CMD_BY_DESTHOST)):
+                    threads_dst[l].start()
+
+                for l in range(len(CMD_BY_DESTHOST)):
+                    threads_dst[l].join()
+#                print ("cmd by dsthost all done elapsed : {}".format(time.time() - start_second_time))
+#                for j in range(len(CMD_BY_SOURCEHOST)):
+#                    file_paths = get_filepaths(foldername, INTERFACE_LIST, TOP_NUM, j%len(INTERFACE_LIST))
+#                    fr = Flowrecorder(CMD_BY_SOURCEHOST[j], D_INTERFACE_LIST, foldername,
+#                                        file_paths, logfolderpath, include_subnet_tree)
+#                    fr.start(RECORD_FILE_TYPE, RECORD_CMD_TYPE)
+#                for l in range(len(CMD_BY_DESTHOST)):
+#                    file_paths = get_filepaths(foldername, INTERFACE_LIST, TOP_NUM, l%len(INTERFACE_LIST))
+#                    fr = Flowrecorder(CMD_BY_DESTHOST[l], D_INTERFACE_LIST, foldername,
+#                                        file_paths, logfolderpath, include_subnet_tree)
+#                    fr.start(RECORD_FILE_TYPE, RECORD_CMD_TYPE)
+#                import pdb; pdb.set_trace()  # XXX BREAKPOINT
             else:
                 pass
             time.sleep(SCRIPT_INTERVAL)
